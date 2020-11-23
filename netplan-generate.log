@@ -1,0 +1,13 @@
+DEBUG:command generate: running ['/lib/netplan/generate']
+** (generate:2783): DEBUG: 14:46:22.691: Processing input file /etc/netplan/00-installer-config.yaml..
+** (generate:2783): DEBUG: 14:46:22.692: starting new processing pass
+** (generate:2783): DEBUG: 14:46:22.692: Processing input file /etc/netplan/99_config.yaml..
+** (generate:2783): DEBUG: 14:46:22.692: starting new processing pass
+** (generate:2783): DEBUG: 14:46:22.692: We have some netdefs, pass them through a final round of validation
+** (generate:2783): DEBUG: 14:46:22.692: eno1: setting default backend to 1
+** (generate:2783): DEBUG: 14:46:22.692: Configuration is valid
+** (generate:2783): DEBUG: 14:46:22.692: Generating output files..
+** (generate:2783): DEBUG: 14:46:22.692: openvswitch: definition eno1 is not for us (backend 1)
+** (generate:2783): DEBUG: 14:46:22.692: NetworkManager: definition eno1 is not for us (backend 1)
+(generate:2783): GLib-DEBUG: 14:46:22.693: posix_spawn avoided (fd close requested) 
+(generate:2783): GLib-DEBUG: 14:46:22.694: posix_spawn avoided (fd close requested) 

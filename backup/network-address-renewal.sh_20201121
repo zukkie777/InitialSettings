@@ -1,0 +1,124 @@
+#!/bin/bash
+if [ $#=0   ];then # 引数が1個未満
+	  echo "パターン1:固定IPアドレス設定用"
+	  echo "Usage:#  $0 FIXED-IP IPAddress SubnetMasks GateWayAddress NameServer1 NameServer2 NameServer3" 1>&2 # 固定IPアドレス用
+	  echo "e.g1   DNS1台指定時"
+	  echo "       #  $0 FIXED-IP 192.168.1.199 255.255.255.0 192.168.1.1 192.168.1.1" 1>&2 #
+	  echo "e.g2   DNS2台指定時"
+	  echo "       #  $0 FIXED-IP 192.168.1.199 255.255.255.0 192.168.1.1 192.168.1.1 8.8.8.8" 1>&2 # 
+	  echo "e.g3   DNS3台指定時"
+	  echo "       #  $0 FIXED-IP 192.168.1.199 255.255.255.0 192.168.1.1 192.168.1.1 8.8.8.8 8.8.4.4" 1>&2 # 
+	  echo " "
+	  echo "パターン2:DHCP設定用"
+	  echo "Usage:#  $0 DHCP" 1>&2 #  DHCP用
+	    exit 1
+    else
+	      echo "eeyan"
+fi
+if  test -e error.log ; then
+    rm error.log
+fi
+
+
+
+if test "$1" = "DHCP" ; then
+	echo "cp 00-installer-config.yaml /etc/netplan/."
+	echo "netplan --debug generate"
+	echo "netplan apply"
+	echo "ネットワークの設定変更が完了しました。" >error.log 
+	exit
+
+elif test "$1" = "FIXED-IP" ; then
+IPAddress=$2
+SubnetMasks=$3
+
+# サブネットマスク=>プレフィックス標記への変換テーブル
+Prefix=`grep "$3"  ConvertNetmasks.tbl |cut -f 1`
+GateWayAddress=$4
+NameServer1=$5
+
+# error.logの生成
+bash ip_check.sh $2  >error.log
+if  test -z "$Prefix"   ; then
+	echo "$3 は適切なサブネットマスクではありません。" >>error.log 
+fi
+bash ip_check.sh $4  >>error.log
+bash ip_check.sh $5  >>error.log
+bash ip_check.sh $6  >>error.log
+bash ip_check.sh $7  >>error.log 
+if  test -n "$6" ; then
+	NameServer2=,$6
+fi
+if  test -n "$7" ; then
+	NameServer3=,$7
+fi
+if  test -n "$8" ; then
+	Domain1=$8
+fi
+if  test -n "$9" ; then
+	Domain2=,$9
+fi
+if  test -n "${10}" ; then
+	Domain3=,${10}
+fi
+# error.log存在する場合は標準出力後処理停止
+if  test -s error.log ; then
+    cat error.log
+    exit 1
+fi
+	echo "------------------------"
+	## NetworkAddress
+	#echo "$2"
+	#
+	## IPAddress
+	#echo "$2"
+	echo IPAddress: `echo "$IPAddress"`
+	#echo "IPAddress" echo "$IPAddress"
+	#echo "$IPAddress"
+	#
+	## SubnetMasks
+	echo SubnetMasks: `echo "$SubnetMasks"`
+	#echo "$SubnetMasks"
+	#
+	# Prefix
+	echo Prefix: `echo "$Prefix"` 	
+	#echo "$Prefix"	
+	#
+	# GateWayAddress
+	echo GateWayAddress: `echo "$GateWayAddress"`
+	#echo "$4"
+	#echo "$GateWayAddress"
+	#
+	# NameServers
+	echo "NameServers:" `echo "$NameServer1"``echo "$NameServer2"``echo "$NameServer3"`
+	#echo "$NameServer1"
+	#echo "$NameServer2"
+	#echo "$NameServer3"
+	# Domain
+	echo "Domain:" `echo "$Domain1"``echo "$Domain2"``echo "$Domain3"`
+	echo "------------------------"
+	echo "  "
+	echo "  "
+	echo "  "
+	
+echo "	network:"	>99_config.yaml
+echo "	  version: 2"	>>99_config.yaml
+echo "	  renderer: networkd" >>99_config.yaml
+echo "	  ethernets:"	>>99_config.yaml
+echo "	    eno1:"       >>99_config.yaml
+echo "	    dhcp4: false" >>99_config.yaml
+echo "	    dhcp6: false" >>99_config.yaml
+echo "	    addresses: [$IPAddress$Prefix]" >>99_config.yaml
+echo "	    gateway4: $GateWayAddress" >>99_config.yaml
+echo "	    nameservers:"			>>99_config.yaml
+echo "            search: [$Domain1$Domain2$Domain3]"  >>99_config.yaml
+echo "	      addresses: [$NameServer1$NameServer2$NameServer3]" >>99_config.yaml
+# excute change network address
+	echo "cp 99_config.yaml /etc/netplan/."
+	echo "netplan --debug generate"
+	echo "netplan apply"
+	echo "ネットワークの設定変更が完了しました。" >>error.log 
+
+else
+	echo "INPUT ERROR!"	
+fi

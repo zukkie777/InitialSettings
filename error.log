@@ -1,0 +1,14 @@
+    
+    
+    
+ネットワークの設定変更が完了しました。
+IPアドレスは以下の固定IPアドレス設定に変更しました。
+----------------------------------------------------
+IPAddress: 192.168.1.199
+SubnetMasks: 255.255.255.0
+GateWayAddress: 192.168.1.1
+NameServers: 192.168.1.1, 8.8.8.8, 8.8.4.4
+Domain: example.com,example.net,example.edu
+    
+    
+    
