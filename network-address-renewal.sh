@@ -24,8 +24,7 @@ if [ $# -ne 1 ]; then
 
 	    exit 1
 	   
-    else
-#	      echo "eeyan"
+else
 while read row; do
 	            item1=`echo ${row} | cut -d , -f 1`
 		    item2=`echo ${row} | cut -d , -f 2`
@@ -42,18 +41,35 @@ if  test -e *.log ; then
     rm *.log
 fi
 
+# ケーブル接続のNICを検索
+NIC_DEVICE=`for DEV in \`find /sys/devices -name net | grep -v virtual\`; do ls $DEV/; done`
 
 # DHCP設定への変更用スクリプト
 if test "${item1}" = "DHCP" ; then
 	echo "ネットワーク設定は以下の内容に変更します。"
 	echo "--------------------------------------------"
 	echo "IPアドレスは自働取得設定に変更します。"
+	# DHCPアドレス設定変更用YAMLファイル生成
+	echo "network:" >00-installer-config.yaml
+	echo "  ethernets:">>00-installer-config.yaml
+        echo "    $NIC_DEVICE:">>00-installer-config.yaml
+        echo "      dhcp4: true">>00-installer-config.yaml
+        echo "  version: 2">>00-installer-config.yaml
 	#echo "cp 00-installer-config.yaml /etc/netplan/."
-	#cp 00-installer-config.yaml /etc/netplan/."
+	cp 00-installer-config.yaml /etc/netplan/.
 	#echo "netplan --debug generate"
-	#netplan --debug generate
+	netplan --debug generate >&  netplan-generate.log
+	grep Invalid netplan-generate.log > err.netplan-generate.log
+        if test -s err.netplan-generate.log ; then
+                echo "不正な設定ファイルが生成された為,処理を停止しました。" >error.log
+                exit
+        else
 	#echo "netplan apply"
-	#netplan apply
+	netplan apply
+	sleep 5
+          cp /run/systemd/resolve/resolv.conf /etc/resolv.conf >&   error.log
+          cp /run/systemd/resolve/resolv.conf /etc/systemd/resolve.conf >&   error.log
+          cp /run/systemd/network/10-netplan-$NIC_DEVICE.network /etc/systemd/network >& error.log
 	  echo "    " >error.log 
 	  echo "    " >>error.log 
 	  echo "    " >>error.log 
@@ -64,6 +80,7 @@ if test "${item1}" = "DHCP" ; then
 	  echo "    " >>error.log 
 	cat error.log
 	exit
+	fi
 
 elif test "${item1}" = "FIXED-IP" ; then
 IPAddress=${item2}
@@ -158,7 +175,7 @@ echo "network:"	>99_config.yaml
 echo "   version: 2"	>>99_config.yaml
 echo "   renderer: networkd" >>99_config.yaml
 echo "   ethernets:"	>>99_config.yaml
-echo "     eno1:"       >>99_config.yaml
+echo "     $NIC_DEVICE:"       >>99_config.yaml
 echo "        dhcp4: false" >>99_config.yaml
 echo "        dhcp6: false" >>99_config.yaml
 echo "        addresses: [$IPAddress$Prefix]" >>99_config.yaml
@@ -182,7 +199,7 @@ echo "          addresses: [$NameServer1$NameServer2$NameServer3]" >>99_config.y
 	  sleep 5
 	  cp /run/systemd/resolve/resolv.conf /etc/resolv.conf >&   error.log
 	  cp /run/systemd/resolve/resolv.conf /etc/systemd/resolve.conf >&   error.log
-	  cp /run/systemd/network/10-netplan-eno1.network /etc/systemd/network >& error.log
+	  cp /run/systemd/network/10-netplan-$NIC_DEVICE.network /etc/systemd/network >& error.log
 
 
 	  echo "    " >>error.log 

@@ -1,1 +1,1 @@
-FIXED-IP,192.168.1.199,255.255.255.0,192.168.1.1,192.168.1.1,8.8.8.8,8.8.4.4,example.com,example.net,example.edu
+FIXED-IP,192.168.1.195,255.255.255.0,192.168.1.1,192.168.1.1,8.8.8.8,8.8.4.4,example.com,example.net,example.edu
