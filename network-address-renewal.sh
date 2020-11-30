@@ -1,4 +1,6 @@
-#!/bin/bash
+# updated 2020/11/30
+# ver.0.991 
+##!/bin/bash
 # このスクリプトの使用方法を表示
 # 引数にファイルが付与されない場合はUsage表示
 if [ $# -ne 1 ]; then
@@ -42,7 +44,8 @@ if  test -e *.log ; then
 fi
 
 # ケーブル接続のNICを検索
-NIC_DEVICE=`for DEV in \`find /sys/devices -name net | grep -v virtual\`; do ls $DEV/; done`
+#NIC_DEVICE=`for DEV in \`find /sys/devices -name net | grep -v virtual\`; do ls $DEV/; done`
+NIC_DEVICE=`ip a|grep "BROADCAST,MULTICAST,UP,LOWER_UP"  |cut -d":" -f 2 |sed "s/ //"`
 
 # DHCP設定への変更用スクリプト
 if test "${item1}" = "DHCP" ; then
